@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -103,6 +104,7 @@ const Index = () => {
   const [selectedType, setSelectedType] = useState<'all' | 'pizza' | 'sushi' | 'roll'>('all');
   const [activeTab, setActiveTab] = useState('catalog');
   const [mapFilter, setMapFilter] = useState<'all' | 'pizza' | 'japanese' | 'italian'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const toggleFavorite = (id: number) => {
     setFavorites(prev =>
@@ -116,13 +118,20 @@ const Index = () => {
 
   const favoriteItems = menuItems.filter(item => favorites.includes(item.id));
 
-  const filteredRestaurants = mapFilter === 'all'
+  const filteredByType = mapFilter === 'all'
     ? topRestaurants
     : mapFilter === 'pizza'
     ? topRestaurants.filter(r => r.cuisine === 'Пицца')
     : mapFilter === 'japanese'
     ? topRestaurants.filter(r => r.cuisine === 'Японская')
     : topRestaurants.filter(r => r.cuisine === 'Итальянская' || r.cuisine === 'Паназиатская');
+
+  const filteredRestaurants = filteredByType.filter(restaurant =>
+    searchQuery === '' ||
+    restaurant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    restaurant.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    restaurant.cuisine.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -350,9 +359,31 @@ const Index = () => {
 
           <TabsContent value="map" className="space-y-6">
             <div className="bg-white rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Все заведения на карте</h2>
-                <div className="flex gap-2">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold mb-4">Все заведения на карте</h2>
+                
+                <div className="relative mb-4">
+                  <Icon name="Search" size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Поиск по названию, адресу или кухне..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 rounded-full h-12 text-base"
+                  />
+                  {searchQuery && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full"
+                      onClick={() => setSearchQuery('')}
+                    >
+                      <Icon name="X" size={18} />
+                    </Button>
+                  )}
+                </div>
+
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     onClick={() => setMapFilter('all')}
                     variant={mapFilter === 'all' ? 'default' : 'outline'}
