@@ -102,6 +102,7 @@ const Index = () => {
   const [favorites, setFavorites] = useState<number[]>([]);
   const [selectedType, setSelectedType] = useState<'all' | 'pizza' | 'sushi' | 'roll'>('all');
   const [activeTab, setActiveTab] = useState('catalog');
+  const [mapFilter, setMapFilter] = useState<'all' | 'pizza' | 'japanese' | 'italian'>('all');
 
   const toggleFavorite = (id: number) => {
     setFavorites(prev =>
@@ -114,6 +115,14 @@ const Index = () => {
     : menuItems.filter(item => item.type === selectedType);
 
   const favoriteItems = menuItems.filter(item => favorites.includes(item.id));
+
+  const filteredRestaurants = mapFilter === 'all'
+    ? topRestaurants
+    : mapFilter === 'pizza'
+    ? topRestaurants.filter(r => r.cuisine === 'Пицца')
+    : mapFilter === 'japanese'
+    ? topRestaurants.filter(r => r.cuisine === 'Японская')
+    : topRestaurants.filter(r => r.cuisine === 'Итальянская' || r.cuisine === 'Паназиатская');
 
   return (
     <div className="min-h-screen bg-background">
@@ -341,7 +350,43 @@ const Index = () => {
 
           <TabsContent value="map" className="space-y-6">
             <div className="bg-white rounded-3xl p-6 shadow-sm">
-              <h2 className="text-2xl font-bold mb-4">Все заведения на карте</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold">Все заведения на карте</h2>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setMapFilter('all')}
+                    variant={mapFilter === 'all' ? 'default' : 'outline'}
+                    size="sm"
+                    className="rounded-full"
+                  >
+                    Все ({topRestaurants.length})
+                  </Button>
+                  <Button
+                    onClick={() => setMapFilter('pizza')}
+                    variant={mapFilter === 'pizza' ? 'default' : 'outline'}
+                    size="sm"
+                    className="rounded-full"
+                  >
+                    🍕 Пицца ({topRestaurants.filter(r => r.cuisine === 'Пицца').length})
+                  </Button>
+                  <Button
+                    onClick={() => setMapFilter('japanese')}
+                    variant={mapFilter === 'japanese' ? 'default' : 'outline'}
+                    size="sm"
+                    className="rounded-full"
+                  >
+                    🍣 Японская ({topRestaurants.filter(r => r.cuisine === 'Японская').length})
+                  </Button>
+                  <Button
+                    onClick={() => setMapFilter('italian')}
+                    variant={mapFilter === 'italian' ? 'default' : 'outline'}
+                    size="sm"
+                    className="rounded-full"
+                  >
+                    🍝 Другие ({topRestaurants.filter(r => r.cuisine === 'Итальянская' || r.cuisine === 'Паназиатская').length})
+                  </Button>
+                </div>
+              </div>
               <div className="h-[600px] rounded-2xl overflow-hidden border-2 border-border">
                 <MapContainer
                   center={[55.7558, 37.6173]}
@@ -352,7 +397,7 @@ const Index = () => {
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   />
-                  {topRestaurants.map(restaurant => (
+                  {filteredRestaurants.map(restaurant => (
                     <Marker key={restaurant.id} position={restaurant.coordinates}>
                       <Popup>
                         <div className="p-2">
